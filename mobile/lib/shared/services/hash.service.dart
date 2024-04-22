@@ -30,14 +30,14 @@ class HashService {
     final filtered = excludedAssets == null
         ? entities
         : entities.where((e) => !excludedAssets.contains(e.id)).toList();
-    return _hashAssets(filtered);
+    return hashAssets(filtered);
   }
 
   /// Converts a list of [AssetEntity]s to [Asset]s including only those
   /// that were successfully hashed. Hashes are looked up in a DB table
   /// [AndroidDeviceAsset] / [IOSDeviceAsset] by local id. Only missing
   /// entries are newly hashed and added to the DB table.
-  Future<List<Asset>> _hashAssets(List<AssetEntity> assetEntities) async {
+  Future<List<Asset>> hashAssets(List<AssetEntity> assetEntities) async {
     const int batchFileCount = 128;
     const int batchDataSize = 1024 * 1024 * 1024; // 1GB
 

@@ -40,7 +40,7 @@ class ImageViewerStateNotifier extends StateNotifier<ImageViewerPageState> {
         toastType: ToastType.success,
         gravity: ToastGravity.BOTTOM,
       );
-      _albumService.refreshDeviceAlbums();
+      print("Asset: ${await _albumService.refreshDeviceAlbums()}");
     } else {
       state = state.copyWith(downloadAssetStatus: DownloadAssetStatus.error);
       ImmichToast.show(

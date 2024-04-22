@@ -7,8 +7,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
+import 'package:immich_mobile/modules/import/services/import.service.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:timezone/data/latest.dart';
 import 'package:immich_mobile/constants/locales.dart';
 import 'package:immich_mobile/modules/backup/background_service/background.service.dart';
@@ -119,6 +122,7 @@ class ImmichApp extends ConsumerStatefulWidget {
 
 class ImmichAppState extends ConsumerState<ImmichApp>
     with WidgetsBindingObserver {
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -166,6 +170,8 @@ class ImmichAppState extends ConsumerState<ImmichApp>
     }
     SystemChrome.setSystemUIOverlayStyle(overlayStyle);
     await ref.read(localNotificationService).setup();
+
+   
   }
 
   @override
@@ -175,19 +181,21 @@ class ImmichAppState extends ConsumerState<ImmichApp>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // needs to be delayed so that EasyLocalization is working
       ref.read(backgroundServiceProvider).resumeServiceIfEnabled();
+      ref.watch(importServiceProvider).init();
     });
+    
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    ref.watch(importServiceProvider).destroy();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     var router = ref.watch(appRouterProvider);
-
     return MaterialApp(
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,

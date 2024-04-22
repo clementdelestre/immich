@@ -15,6 +15,7 @@ import 'package:immich_mobile/modules/backup/services/backup.service.dart';
 import 'package:immich_mobile/modules/login/models/authentication_state.model.dart';
 import 'package:immich_mobile/modules/login/providers/authentication.provider.dart';
 import 'package:immich_mobile/modules/onboarding/providers/gallery_permission.provider.dart';
+import 'package:immich_mobile/shared/models/asset.dart';
 import 'package:immich_mobile/shared/models/server_info/server_disk_info.model.dart';
 import 'package:immich_mobile/shared/models/store.dart';
 import 'package:immich_mobile/shared/providers/app_state.provider.dart';
@@ -309,8 +310,18 @@ class BackupNotifier extends StateNotifier<BackUpState> {
       assetsFromExcludedAlbums.addAll(assets);
     }
 
+    //find assets that are backed up
+    _db.assets.where().sortByFileName().findAll().then((value) => {
+      for(var el in value){ 
+        log.info("Asset: ${el.fileName} - ${el.id} - R: ${el.isRemote} L: ${el.isLocal}")
+      }
+    });
+
+    log.info("Asset: STOP");
+
     final Set<AssetEntity> allUniqueAssets =
         assetsFromSelectedAlbums.difference(assetsFromExcludedAlbums);
+
     final allAssetsInDatabase = await _backupService.getDeviceBackupAsset();
 
     if (allAssetsInDatabase == null) {

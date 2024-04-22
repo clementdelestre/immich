@@ -46,6 +46,7 @@ import 'package:immich_mobile/modules/search/views/person_result_page.dart';
 import 'package:immich_mobile/modules/search/views/recently_added_page.dart';
 import 'package:immich_mobile/modules/search/views/search_page.dart';
 import 'package:immich_mobile/modules/settings/views/settings_page.dart';
+import 'package:immich_mobile/modules/import/ui/import_file_page.dart';
 import 'package:immich_mobile/routing/auth_guard.dart';
 import 'package:immich_mobile/routing/custom_transition_builders.dart';
 import 'package:immich_mobile/routing/duplicate_guard.dart';
@@ -224,6 +225,10 @@ class AppRouter extends _$AppRouter {
       page: SearchInputRoute.page,
       guards: [_authGuard, _duplicateGuard],
       transitionsBuilder: TransitionsBuilders.noTransition,
+    ),
+    AutoRoute(
+      page: ImportFileRoute.page,
+      guards: [_authGuard, _duplicateGuard],
     ),
   ];
 }

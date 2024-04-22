@@ -107,7 +107,7 @@
   "backup_controller_page_total_sub": "Toutes les photos et vidéos uniques des albums sélectionnés",
   "backup_controller_page_turn_off": "Désactiver la sauvegarde",
   "backup_controller_page_turn_on": "Activer la sauvegarde",
-  "backup_controller_page_uploading_file_info": "Transfert des informations du fichier",
+  "backup_controller_page_uploading_file_info": "Transfert du fichier",
   "backup_err_only_album": "Impossible de retirer le seul album",
   "backup_info_card_assets": "éléments",
   "backup_manual_cancelled": "Annulé",
@@ -512,5 +512,9 @@
   "viewer_stack_use_as_main_asset": "Utiliser comme élément principal",
   "viewer_unstack": "Désempiler",
   "haptic_feedback_title": "Retour haptique",
-  "haptic_feedback_switch": "Activer le retour haptique"
+  "haptic_feedback_switch": "Activer le retour haptique",
+
+  "upload_file_page_title": "Importer dans Immich",
+  "upload_file_upload" : "Importer",
+  "import_file_count" : "Importer {} éléments"
 }

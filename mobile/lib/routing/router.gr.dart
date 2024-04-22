@@ -176,6 +176,14 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const HomePage(),
       );
     },
+    ImportFileRoute.name: (routeData) {
+      final args = routeData.argsAs<ImportFileRouteArgs>(
+          orElse: () => const ImportFileRouteArgs());
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: ImportFilePage(key: args.key),
+      );
+    },
     LibraryRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
@@ -864,6 +872,35 @@ class HomeRoute extends PageRouteInfo<void> {
   static const String name = 'HomeRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [ImportFilePage]
+class ImportFileRoute extends PageRouteInfo<ImportFileRouteArgs> {
+  ImportFileRoute({
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+          ImportFileRoute.name,
+          args: ImportFileRouteArgs(key: key),
+          initialChildren: children,
+        );
+
+  static const String name = 'ImportFileRoute';
+
+  static const PageInfo<ImportFileRouteArgs> page =
+      PageInfo<ImportFileRouteArgs>(name);
+}
+
+class ImportFileRouteArgs {
+  const ImportFileRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'ImportFileRouteArgs{key: $key}';
+  }
 }
 
 /// generated route for

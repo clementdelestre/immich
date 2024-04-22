@@ -5,6 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/modules/asset_viewer/providers/scroll_notifier.provider.dart';
 import 'package:immich_mobile/modules/home/providers/multiselect.provider.dart';
+import 'package:immich_mobile/modules/import/models/import_state.model.dart';
+import 'package:immich_mobile/modules/import/providers/import.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
 import 'package:immich_mobile/shared/providers/asset.provider.dart';
 import 'package:immich_mobile/shared/providers/haptic_feedback.provider.dart';
@@ -17,6 +19,11 @@ class TabControllerPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final refreshing = ref.watch(assetProvider);
+    final importService = ref.watch(importProvider);
+
+    if(importService.importState == ImportStateEnum.importPrompted){
+      context.pushRoute(ImportFileRoute());
+    }
 
     Widget buildIcon(Widget icon) {
       if (!refreshing) return icon;

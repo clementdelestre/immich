@@ -514,5 +514,9 @@
   "viewer_stack_use_as_main_asset": "Use as Main Asset",
   "viewer_unstack": "Un-Stack",
   "haptic_feedback_title": "Haptic Feedback",
-  "haptic_feedback_switch": "Enable haptic feedback"
+  "haptic_feedback_switch": "Enable haptic feedback",
+
+  "upload_file_page_title": "Import in Immich",
+  "upload_file_upload" : "Import",
+  "import_file_count" : "Import {} files"
 }
