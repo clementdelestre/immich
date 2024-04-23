@@ -216,8 +216,9 @@ class ImmichAssetGridViewState extends ConsumerState<ImmichAssetGridView> {
     }
 
     final listWidget = ScrollablePositionedList.builder(
-      padding: const EdgeInsets.only(
+      padding: EdgeInsets.only(
         bottom: 220,
+        top: widget.showMultiSelectIndicator && widget.selectionActive ? kToolbarHeight : 0,
       ),
       itemBuilder: _itemBuilder,
       itemPositionsListener: _itemPositionsListener,
@@ -449,7 +450,10 @@ class ImmichAssetGridViewState extends ConsumerState<ImmichAssetGridView> {
             onScrollStart: () => WidgetsBinding.instance.addPostFrameCallback(
               (_) => controlBottomAppBarNotifier.minimize(),
             ),
-            child: _buildAssetGrid(),
+            child: Padding(
+              padding: EdgeInsets.only(top: widget.showMultiSelectIndicator && widget.selectionActive ? 0 : 0),
+              child: _buildAssetGrid(),
+            ),
           ),
           if (widget.showMultiSelectIndicator && widget.selectionActive)
             _buildMultiSelectIndicator(),
