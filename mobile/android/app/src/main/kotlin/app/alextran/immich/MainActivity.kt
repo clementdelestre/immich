@@ -20,6 +20,8 @@ import app.alextran.immich.images.RemoteImageApi
 import app.alextran.immich.images.RemoteImagesImpl
 import app.alextran.immich.permission.PermissionApi
 import app.alextran.immich.permission.PermissionApiImpl
+import app.alextran.immich.segmentation.SubjectSegmentationApi
+import app.alextran.immich.segmentation.SubjectSegmentationApiImpl
 import app.alextran.immich.sync.NativeSyncApi
 import app.alextran.immich.sync.NativeSyncApiImpl26
 import app.alextran.immich.sync.NativeSyncApiImpl30
@@ -61,6 +63,7 @@ class MainActivity : FlutterFragmentActivity() {
 
       BackgroundWorkerFgHostApi.setUp(messenger, BackgroundWorkerApiImpl(ctx))
       ConnectivityApi.setUp(messenger, ConnectivityApiImpl(ctx))
+      SubjectSegmentationApi.setUp(messenger, SubjectSegmentationApiImpl(ctx))
 
       flutterEngine.plugins.add(ViewIntentPlugin())
       flutterEngine.plugins.add(backgroundEngineLockImpl)

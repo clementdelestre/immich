@@ -71,3 +71,4 @@ lib/generated/
 
 # Flutter widget previews cache
 .widget_preview/
+/android/app/src/main/assets/interactive_segmentation.task

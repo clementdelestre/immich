@@ -11,16 +11,19 @@ import 'package:immich_mobile/domain/services/timeline.service.dart';
 import 'package:immich_mobile/domain/utils/event_stream.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/extensions/scroll_extensions.dart';
+import 'package:immich_mobile/platform/subject_segmentation_api.g.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_details.widget.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_stack.provider.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_stack.widget.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/ocr_overlay.widget.dart';
+import 'package:immich_mobile/presentation/widgets/asset_viewer/subject_sticker.widget.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/video_viewer.widget.dart';
 import 'package:immich_mobile/presentation/widgets/images/image_provider.dart';
 import 'package:immich_mobile/presentation/widgets/images/progressive_image.widget.dart';
 import 'package:immich_mobile/presentation/widgets/images/thumbnail.widget.dart';
 import 'package:immich_mobile/providers/asset_viewer/asset_viewer.provider.dart';
 import 'package:immich_mobile/providers/asset_viewer/is_motion_video_playing.provider.dart';
+import 'package:immich_mobile/providers/haptic_feedback.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/settings.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/providers/view_intent/view_intent_file_path.provider.dart';
@@ -64,6 +67,8 @@ class _AssetPageState extends ConsumerState<AssetPage> {
   Drag? _drag;
 
   BaseAsset? _asset;
+  ({BaseAsset asset, ImageProvider provider})? _displayedImage;
+  ({Offset point, Future<SubjectCutout?> cutout})? _sticker;
 
   @override
   void initState() {
@@ -290,8 +295,30 @@ class _AssetPageState extends ConsumerState<AssetPage> {
     }
   }
 
-  void _onLongPress(BuildContext context, LongPressStartDetails details, PhotoViewControllerValue controllerValue) =>
-      ref.read(isPlayingMotionVideoProvider.notifier).playing = true;
+  void _onStickerLongPress(BuildContext context, LongPressStartDetails details, PhotoViewControllerValue value) {
+    final displayed = _displayedImage;
+    final imageSize = _viewController?.scaleBoundaries?.childSize;
+    final scale = value.scale;
+    if (displayed == null || imageSize == null || scale == null) {
+      return;
+    }
+    final viewport = MediaQuery.sizeOf(context);
+    final imageCenter = viewport.center(Offset.zero) + value.position;
+    final point =
+        (details.localPosition - imageCenter).scale(1 / (imageSize.width * scale), 1 / (imageSize.height * scale)) +
+        const Offset(0.5, 0.5);
+    if (point.dx < 0 || point.dx > 1 || point.dy < 0 || point.dy > 1) {
+      return;
+    }
+    ref.read(hapticFeedbackProvider.notifier).mediumImpact();
+    _viewer.setControls(false);
+    setState(() => _sticker = (point: point, cutout: extractSubjectCutout(displayed.asset, displayed.provider, point)));
+  }
+
+  void _dismissSticker() {
+    setState(() => _sticker = null);
+    _viewer.setControls(true);
+  }
 
   void _onScaleStateChanged(PhotoViewScaleState scaleState) {
     _isZoomed = scaleState == PhotoViewScaleState.zoomedIn || scaleState == PhotoViewScaleState.covering;
@@ -364,32 +391,36 @@ class _AssetPageState extends ConsumerState<AssetPage> {
     if (asset.isImage && !isPlayingMotionVideo) {
       return ProgressiveImage(
         provider: imageProvider,
-        builder: (context, provider) => PhotoView(
-          key: Key(asset.heroTag),
-          index: widget.index,
-          imageProvider: provider,
-          heroAttributes: heroAttributes,
-          loadingBuilder: (context, progress, index) => const Center(child: ImmichLoadingIndicator()),
-          gaplessPlayback: true,
-          filterQuality: FilterQuality.high,
-          tightMode: true,
-          enablePanAlways: true,
-          maxScale: PhotoViewComputedScale.contained * _maxScaleMultiplier,
-          disableScaleGestures: _showingDetails,
-          scaleStateChangedCallback: _onScaleStateChanged,
-          onPageBuild: _onPageBuild,
-          onDragStart: _onDragStart,
-          onDragUpdate: _onDragUpdate,
-          onDragEnd: _onDragEnd,
-          onDragCancel: _onDragCancel,
-          onTapUp: _onTapUp,
-          onLongPressStart: asset.isMotionPhoto ? _onLongPress : null,
-          errorBuilder: (_, _, _) => SizedBox(
-            width: size.width,
-            height: size.height,
-            child: Thumbnail.fromAsset(asset: asset, fit: BoxFit.contain),
-          ),
-        ),
+        builder: (context, provider) {
+          _displayedImage = (asset: asset, provider: provider);
+          return PhotoView(
+            key: Key(asset.heroTag),
+            index: widget.index,
+            imageProvider: provider,
+            heroAttributes: heroAttributes,
+            loadingBuilder: (context, progress, index) => const Center(child: ImmichLoadingIndicator()),
+            gaplessPlayback: true,
+            filterQuality: FilterQuality.high,
+            tightMode: true,
+            enablePanAlways: true,
+            maxScale: PhotoViewComputedScale.contained * _maxScaleMultiplier,
+            disableScaleGestures: _showingDetails,
+            scaleStateChangedCallback: _onScaleStateChanged,
+            onPageBuild: _onPageBuild,
+            onDragStart: _onDragStart,
+            onDragUpdate: _onDragUpdate,
+            onDragEnd: _onDragEnd,
+            onDragCancel: _onDragCancel,
+            onTapUp: _onTapUp,
+            // Motion photos keep their play button in the app bar.
+            onLongPressStart: _onStickerLongPress,
+            errorBuilder: (_, _, _) => SizedBox(
+              width: size.width,
+              height: size.height,
+              child: Thumbnail.fromAsset(asset: asset, fit: BoxFit.contain),
+            ),
+          );
+        },
       );
     }
 
@@ -438,6 +469,7 @@ class _AssetPageState extends ConsumerState<AssetPage> {
         : liveMotionPlaying;
     final timelineOrigin = ref.watch(timelineServiceProvider).origin;
     final showingOcr = ref.watch(assetViewerProvider.select((s) => s.showingOcr));
+    final sticker = _sticker;
 
     final asset = _asset;
     if (asset == null) {
@@ -499,6 +531,17 @@ class _AssetPageState extends ConsumerState<AssetPage> {
                       imageSize: Size(displayAsset.width!.toDouble(), displayAsset.height!.toDouble()),
                       viewportSize: Size(viewportWidth, viewportHeight),
                       controller: _viewController,
+                    ),
+                  ),
+                if (sticker != null && isCurrent && _viewController != null)
+                  Positioned.fill(
+                    child: SubjectStickerOverlay(
+                      key: ObjectKey(sticker),
+                      point: sticker.point,
+                      cutout: sticker.cutout,
+                      controller: _viewController!,
+                      viewportSize: Size(viewportWidth, viewportHeight),
+                      onDismiss: _dismissSticker,
                     ),
                   ),
                 IgnorePointer(

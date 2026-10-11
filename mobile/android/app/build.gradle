@@ -110,7 +110,20 @@ dependencies {
   implementation libs.compose.material3
   implementation libs.lifecycle.runtime.ktx
   implementation libs.material
+
+  implementation libs.mediapipe.tasks.vision
 }
+
+def segmentationModel = file("src/main/assets/interactive_segmentation.task")
+tasks.register("downloadSegmentationModel") {
+  outputs.file segmentationModel
+  doLast {
+    segmentationModel.parentFile.mkdirs()
+    new URL("https://storage.googleapis.com/mediapipe-models/interactive_segmenter_v2/magic_touch/int8/1/interactive_segmentation.task")
+      .withInputStream { input -> segmentationModel.withOutputStream { it << input } }
+  }
+}
+preBuild.dependsOn "downloadSegmentationModel"
 
 // This is uncommented in F-Droid build script
 //f configurations.all {
